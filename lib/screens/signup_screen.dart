@@ -8,6 +8,10 @@ import 'package:instagram_clone/resources/auth_methods.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/utils/utils.dart';
 
+import '../responsive/mobile_screen_layout.dart';
+import '../responsive/responsive_layout_screen.dart';
+import '../responsive/web_screen_layout.dart';
+
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -21,6 +25,7 @@ class _LoginScreenState extends State<SignupScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   Uint8List? _image;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -39,6 +44,9 @@ class _LoginScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
+    setState(() {
+      _isLoading = true;
+    });
     String result = await AuthMethods().signUpUser(
       email: _emailController.text,
       password: _passwordController.text,
@@ -46,7 +54,19 @@ class _LoginScreenState extends State<SignupScreen> {
       bio: _bioController.text,
       file: _image!,
     );
-    print(result);
+
+    if (result != 'User Created') {
+      showSnackBar(context, result);
+    }else{
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const ResponsiveLayout(webScreenLayout: WebScreenLayout(), mobileScreenLayout: MobileScreenLayout()),
+        ),
+      );
+    }
+    setState(() {
+      _isLoading = false;
+    });
   }
 
   @override
@@ -144,7 +164,20 @@ class _LoginScreenState extends State<SignupScreen> {
             InkWell(
               onTap: signUpUser,
               child: Container(
-                child: Text('Sign up'),
+                child: _isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        'Sign up',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                 width: double.infinity,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -171,7 +204,9 @@ class _LoginScreenState extends State<SignupScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
                   child: Container(
                     child: Text(
                       'Log in',
